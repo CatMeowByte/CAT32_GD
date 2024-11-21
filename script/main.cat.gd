@@ -5,23 +5,8 @@ var lorem: String = "lorem ipsum dolor adspiticing elitr baf shoir kewulob kon g
 
 
 class player:
-	static var pos: Vector2i = Vector2i(0, 0)
-	static var spd = 1
-
-
-# Parse the PICO-8 graphics data into linear memory
-func parse_pico8_gfx(data: String) -> PackedByteArray:
-	var linear_data = PackedByteArray()
-	for row in data:
-		for i in range(0, row.length(), 2):  # Process two characters at a time
-			var high_nibble = row[i].hex_to_int() << 4  # High nibble
-			var low_nibble = row[i + 1].hex_to_int() if i + 1 < row.length() else 0  # Low nibble (or 0 if missing)
-			linear_data.append(high_nibble | low_nibble)  # Combine into a single byte
-	return linear_data
-
-
-# Convert the grid to a linear array
-#var sprite_memory = parse_pico8_gfx(cgfx)
+	static var pos: Vector2 = Vector2(0, 0)
+	static var spd = 0.5
 
 
 func update() -> void:
@@ -32,7 +17,7 @@ func update() -> void:
 func draw() -> void:
 	DIS.clear(COL.DARK_BLUE)
 	DIS.text(32, 120, "Hi, all!", COL.WHITE)
-	DIS.line(10, 10, 50, 30, COL.RED)
+	DIS.line(10, 90, 110, 120, COL.RED)
 	DIS.rect(10, 10, 50, 60, COL.RED, true)
 	DIS.rect(20, 20, 40, 20, COL.GREEN, false)
 	COL.mask(COL.INDIGO, true)
@@ -42,9 +27,10 @@ func draw() -> void:
 
 	DIS.pixel(player.pos.x, player.pos.y, COL.WHITE)
 	DIS.text(player.pos.x + 4, player.pos.y + 4, "[" + str(player.pos.x) + "," + str(player.pos.y) + "]", COL.WHITE)
+	DIS.camera(player.pos.x / 2, player.pos.y / 2)
 
 	# Blit the sprite onto the screen
-	DIS.blit(player.pos.x, player.pos.y, 16, 16, 64, 64)
+	#DIS.blit(player.pos.x, player.pos.y, 16, 16, 64, 64)
 
 var gfx = """
 00cc000677666701111000111011100001110000011100011101110000111000001110001111100011110000111100e6000000000700000000000e0000000070

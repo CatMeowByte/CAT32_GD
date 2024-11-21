@@ -209,6 +209,9 @@ class DIS:
 
 	static var sprite: PackedByteArray
 
+	static var cam_x: int = 0
+	static var cam_y: int = 0
+
 
 	static func _setup() -> void:
 		DIS._img = Image.create_empty(DIS.W, DIS.HBAR + DIS.HVIEW + DIS.HBAR, false, Image.FORMAT_RGB8)
@@ -229,11 +232,11 @@ class DIS:
 		sprite.resize((DIS.SPRITE_SIZE * DIS.SPRITE_SIZE) / 2)
 
 
-	static func memsel(buffer_id: int = DIS.MEM_VIEW):
-		if buffer_id == DIS.MEM_VIEW:
+	static func memsel(id: int = DIS.MEM_VIEW) -> void:
+		if id == DIS.MEM_VIEW:
 			DIS.mem = DIS.mem_view
 			DIS.mem_h = DIS.HVIEW
-		elif buffer_id == DIS.MEM_TOP:
+		elif id == DIS.MEM_TOP:
 			DIS.mem = DIS.mem_top
 			DIS.mem_h = DIS.HBAR
 		else: # DIS.MEM_BOT
@@ -241,45 +244,56 @@ class DIS:
 			DIS.mem_h = DIS.HBAR
 
 
-	static func _get_pixel(x: int, y: int) -> int:
+	static func camera(x: int = 0, y: int = 0) -> PackedInt32Array:
+		var p: PackedInt32Array = [DIS.cam_x, DIS.cam_y]
+
+		DIS.cam_x = x
+		DIS.cam_y = y
+
+		return p
+
+
+	static func _pixel_get(x: int, y: int) -> int:
 		if x < 0 or x >= DIS.W or y < 0 or y >= DIS.mem_h:
 			return -1
 		var i: int = (y * DIS.W + x) / 2
 		return (DIS.mem[i] >> 4) if x % 2 == 0 else (DIS.mem[i] & 0x0F)
 
 
-	static func _set_pixel(x: int, y: int, color: int) -> void:
-		if x >= DIS.W or y >= DIS.mem_h or x <= 0 or y <= 0:
+	static func _pixel_set(x: int, y: int, color: int) -> void:
+		if x >= DIS.W or y >= DIS.mem_h or x < 0 or y < 0:
 			return
 		if (COL._mask & (1 << color)) != 0:
 			return
 		var i: int = int((y * DIS.W + x) / 2)
-		var is_high_nibble: bool = x % 2 == 0
+		var is_hnibble: bool = x % 2 == 0
 		DIS.mem[i] = (
-			(DIS.mem[i] & (0x0F if is_high_nibble else 0xF0)) # Preserve the other nibble
-			| ((color & 0x0F) << (4 if is_high_nibble else 0)) # Set the desired nibble
+			(DIS.mem[i] & (0x0F if is_hnibble else 0xF0)) # Preserve the other nibble
+			| ((color & 0x0F) << (4 if is_hnibble else 0)) # Set the desired nibble
 		)
 
 
 	static func pixel(x: int, y: int, color: int = -1) -> int:
-		# Check bounds
+		x -= DIS.cam_x
+		y -= DIS.cam_y
 		if x < 0 or x >= DIS.W or y < 0 or y >= DIS.mem_h:
 			return -1
 
-		# Retrieve the color first
 		var i: int = int((y * DIS.W + x) / 2)
 		var value: int = DIS.mem[i]
 		var old_color: int = (value >> 4) if x % 2 == 0 else (value & 0x0F)
 
-		# Optionally set a new color
 		if color != -1:
-			DIS._set_pixel(x, y, color)
+			DIS._pixel_set(x, y, color)
 
-		# Return the original color
 		return old_color
 
 
 	static func line(x1: int, y1: int, x2: int, y2: int, color: int) -> void:
+		x1 -= DIS.cam_x
+		y1 -= DIS.cam_y
+		x2 -= DIS.cam_x
+		y2 -= DIS.cam_y
 		var dx: int = abs(x2 - x1)
 		var dy: int = abs(y2 - y1)
 		var sx: int = 1 if x1 < x2 else -1
@@ -287,7 +301,7 @@ class DIS:
 		var err: int = dx - dy
 
 		while true:
-			DIS._set_pixel(x1, y1, color)
+			DIS._pixel_set(x1, y1, color)
 
 			if x1 == x2 and y1 == y2:
 				break
@@ -302,6 +316,8 @@ class DIS:
 
 
 	static func rect(x: int, y: int, width: int, height: int, color: int, fill: bool = false) -> void:
+		x -= DIS.cam_x
+		y -= DIS.cam_y
 		if x >= DIS.W or y >= DIS.mem_h or x + width <= 0 or y + height <= 0:
 			return
 
@@ -313,32 +329,34 @@ class DIS:
 		if fill:
 			for scan_y in range(y_start, y_end):
 				for scan_x in range(x_start, x_end):
-					DIS._set_pixel(scan_x, scan_y, color)
+					DIS._pixel_set(scan_x, scan_y, color)
 		else:
 			for scan_x in range(x_start, x_end):
-				DIS._set_pixel(scan_x, y_start, color) # Top edge
-				DIS._set_pixel(scan_x, y_end - 1, color) # Bottom edge
+				DIS._pixel_set(scan_x, y_start, color) # Top
+				DIS._pixel_set(scan_x, y_end - 1, color) # Bottom
 
 			for scan_y in range(y_start + 1, y_end - 1):
-				DIS._set_pixel(x_start, scan_y, color) # Left edge
-				DIS._set_pixel(x_end - 1, scan_y, color) # Right edge
+				DIS._pixel_set(x_start, scan_y, color) # Left
+				DIS._pixel_set(x_end - 1, scan_y, color) # Right
 
 
 	static func text(x: int, y: int, string: String, color: int, background: int = COL.BLACK) -> void:
-		var current_x = x
-		var current_y = y
+		x -= DIS.cam_x
+		y -= DIS.cam_y
+		var current_x: int = x
+		var current_y: int = y
 
 		for ch in string:
-			if ch == "\n": # Handle newline
+			if ch == "\n": # Newline
 				current_x = x
 				current_y += FONT.H
 				continue
 
 			var ordinal: int = ch.unicode_at(0)
 
-			# Handle wrapping if the text goes off the right edge
+			# Wrapping
 			if current_x >= DIS.W:
-				if ch == " ": # Handle space
+				if ch == " ": # Space
 					continue
 				current_x = x
 				current_y += FONT.H
@@ -348,8 +366,8 @@ class DIS:
 
 
 	static func character(x: int, y: int, ordinal: int, color: int, background: int = COL.BLACK) -> void:
-		#if x < 0 or x + FONT.W >= DIS.W or y < 0 or y + FONT.H >= DIS.H:
-			#return
+		if x < -FONT.W or x >= DIS.W or y < -FONT.H or y >= DIS.mem_h:
+			return
 
 		var bits: int = FONT.CHAR.get(ordinal, 0)
 		for py in range(FONT.H):
@@ -359,10 +377,12 @@ class DIS:
 				var ty: int = y + py
 				if tx < 0 or tx >= DIS.W or ty < 0 or ty >= DIS.mem_h:
 					continue
-				DIS._set_pixel(tx, ty, color if on else background) # Immediate memory update
+				DIS._pixel_set(tx, ty, color if on else background) # Immediate memory update
 
 
-	static func blit(src_x: int, src_y: int, dest_x: int, dest_y: int, dest_w: int, dest_h: int) -> void:
+	static func blit(src_x: int, src_y: int, dest_x: int, dest_y: int, dest_w: int, dest_h: int) -> void: # FIXME: feels like something missing, recheck pico 8
+		dest_x -= DIS.cam_x
+		dest_y -= DIS.cam_y
 		var src: PackedByteArray = DIS.sprite
 
 		for y in range(dest_h):
@@ -394,7 +414,7 @@ class DIS:
 				var color: int = (src[i] >> 4) if sx % 2 == 0 else (src[i] & 0x0F)
 
 				# Set the pixel in the destination
-				_set_pixel(dest_x + x, dest_y + y, color)
+				_pixel_set(dest_x + x, dest_y + y, color)
 
 
 
