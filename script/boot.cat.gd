@@ -8,6 +8,11 @@ func beep(c, t, d):
 
 
 func init():
+	DIS.memsel(DIS.MEM_TOP)
+	DIS.clear(COL.BLACK)
+	DIS.text(4, 4, Time.get_time_string_from_system(), COL.DARK_GRAY)
+
+	DIS.memsel()
 	await beep(COL.BLACK, 0, 0.5)
 	await beep(COL.DARK_GRAY, 320.0, 0.125)
 	await beep(COL.BLACK, 0, 0.0625)

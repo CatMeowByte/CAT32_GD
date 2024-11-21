@@ -37,7 +37,7 @@ func draw() -> void:
 	DIS.rect(20, 20, 40, 20, COL.GREEN, false)
 	COL.mask(COL.INDIGO, true)
 	COL.mask(COL.BLACK, false)
-	DIS.text(player.pos.x + 32, player.pos.y + 32, "what?\nbut it doesn't makes sense!", COL.INDIGO)
+	DIS.text(player.pos.x + 32, player.pos.y + 32, "what?\nbut it doesn't makes sense!" + lorem, COL.INDIGO)
 	COL.mask()
 
 	DIS.pixel(player.pos.x, player.pos.y, COL.WHITE)

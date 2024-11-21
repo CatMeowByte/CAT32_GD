@@ -16,6 +16,7 @@ static var process: Node
 static var _tick_update: bool = false
 static var _tick_draw: bool = false
 
+
 class COL:
 	static var BLACK: int = 0
 	static var DARK_BLUE: int = 1
@@ -34,28 +35,26 @@ class COL:
 	static var PINK: int = 14
 	static var PEACH: int = 15
 
-
 	const PAL = [ # PICO-8 palette
-		Color8(0, 0, 0),         # Black
-		Color8(29, 43, 83),      # Dark Blue
-		Color8(126, 37, 83),     # Dark Purple
-		Color8(0, 135, 81),      # Dark Green
-		Color8(171, 82, 54),     # Brown
-		Color8(95, 87, 79),      # Dark Gray
-		Color8(194, 195, 199),   # Light Gray
-		Color8(255, 241, 232),   # White
-		Color8(255, 0, 77),      # Red
-		Color8(255, 163, 0),     # Orange
-		Color8(255, 236, 39),    # Yellow
-		Color8(0, 228, 54),      # Green
-		Color8(41, 173, 255),    # Blue
-		Color8(131, 118, 156),   # Indigo
-		Color8(255, 119, 168),   # Pink
-		Color8(255, 204, 170)    # Peach
+		Color8(0, 0, 0), # Black
+		Color8(29, 43, 83), # Dark Blue
+		Color8(126, 37, 83), # Dark Purple
+		Color8(0, 135, 81), # Dark Green
+		Color8(171, 82, 54), # Brown
+		Color8(95, 87, 79), # Dark Gray
+		Color8(194, 195, 199), # Light Gray
+		Color8(255, 241, 232), # White
+		Color8(255, 0, 77), # Red
+		Color8(255, 163, 0), # Orange
+		Color8(255, 236, 39), # Yellow
+		Color8(0, 228, 54), # Green
+		Color8(41, 173, 255), # Blue
+		Color8(131, 118, 156), # Indigo
+		Color8(255, 119, 168), # Pink
+		Color8(255, 204, 170), # Peach
 	]
 
-
-	static var _mask: int = 1 # Bit
+	static var _mask: int = 1 # Bitmask
 
 	static func mask(color: int = -1, hide: bool = false) -> void:
 		if color == -1:
@@ -64,6 +63,7 @@ class COL:
 			_mask |= (1 << color)
 		else:
 			_mask &= ~(1 << color)
+
 
 class FONT:
 	const W: int = 4
@@ -189,54 +189,86 @@ class FONT:
 
 class DIS:
 	const W = 120
-	const H = 160
+	const HVIEW = 120
+	const HBAR = 20
 	const SPRITE_SIZE = 128 # Square
 
-	static var node_screen_main: TextureRect
-	static var img: Image
-	static var tex: ImageTexture
+	const MEM_VIEW = 0
+	const MEM_TOP = 1
+	const MEM_BOT =2
 
-	static var memory: PackedByteArray
+	static var _node_screen: TextureRect
+	static var _img: Image
+	static var _tex: ImageTexture
+
+	static var mem: PackedByteArray # Pointer
+	static var mem_h: int = 0
+	static var mem_top: PackedByteArray
+	static var mem_view: PackedByteArray
+	static var mem_bot: PackedByteArray
+
 	static var sprite: PackedByteArray
 
 
 	static func _setup() -> void:
-		img = Image.create_empty(W, H, false, Image.FORMAT_RGB8)
-		tex = ImageTexture.create_from_image(img)
-		node_screen_main.texture = tex
+		DIS._img = Image.create_empty(DIS.W, DIS.HBAR + DIS.HVIEW + DIS.HBAR, false, Image.FORMAT_RGB8)
+		DIS._tex = ImageTexture.create_from_image(DIS._img)
+		DIS._node_screen.texture = DIS._tex
 
-		memory.resize((W * H) / 2)
-		memory.fill(0)
+		DIS.mem_top.resize((DIS.W * DIS.HBAR) / 2)
+		DIS.mem_top.fill(0)
 
-		sprite.resize((SPRITE_SIZE * SPRITE_SIZE) / 2)
+		DIS.mem_view.resize((DIS.W * DIS.HVIEW) / 2)
+		DIS.mem_view.fill(0)
+
+		DIS.mem_bot.resize((DIS.W * DIS.HBAR) / 2)
+		DIS.mem_bot.fill(0)
+
+		memsel()
+
+		sprite.resize((DIS.SPRITE_SIZE * DIS.SPRITE_SIZE) / 2)
+
+
+	static func memsel(buffer_id: int = DIS.MEM_VIEW):
+		if buffer_id == DIS.MEM_VIEW:
+			DIS.mem = DIS.mem_view
+			DIS.mem_h = DIS.HVIEW
+		elif buffer_id == DIS.MEM_TOP:
+			DIS.mem = DIS.mem_top
+			DIS.mem_h = DIS.HBAR
+		else: # DIS.MEM_BOT
+			DIS.mem = DIS.mem_bot
+			DIS.mem_h = DIS.HBAR
 
 
 	static func _get_pixel(x: int, y: int) -> int:
-		if x < 0 or x >= DIS.W or y < 0 or y >= DIS.H:
+		if x < 0 or x >= DIS.W or y < 0 or y >= DIS.mem_h:
 			return -1
 		var i: int = (y * DIS.W + x) / 2
-		return (DIS.memory[i] >> 4) if x % 2 == 0 else (DIS.memory[i] & 0x0F)
+		return (DIS.mem[i] >> 4) if x % 2 == 0 else (DIS.mem[i] & 0x0F)
 
 
 	static func _set_pixel(x: int, y: int, color: int) -> void:
+		if x >= DIS.W or y >= DIS.mem_h or x <= 0 or y <= 0:
+			return
 		if (COL._mask & (1 << color)) != 0:
 			return
 		var i: int = int((y * DIS.W + x) / 2)
 		var is_high_nibble: bool = x % 2 == 0
-		DIS.memory[i] = (
-			(DIS.memory[i] & (0x0F if is_high_nibble else 0xF0))  # Preserve the other nibble
-			| ((color & 0x0F) << (4 if is_high_nibble else 0))    # Set the desired nibble
+		DIS.mem[i] = (
+			(DIS.mem[i] & (0x0F if is_high_nibble else 0xF0)) # Preserve the other nibble
+			| ((color & 0x0F) << (4 if is_high_nibble else 0)) # Set the desired nibble
 		)
 
 
 	static func pixel(x: int, y: int, color: int = -1) -> int:
 		# Check bounds
-		if x < 0 or x >= DIS.W or y < 0 or y >= DIS.H:
+		if x < 0 or x >= DIS.W or y < 0 or y >= DIS.mem_h:
 			return -1
 
 		# Retrieve the color first
 		var i: int = int((y * DIS.W + x) / 2)
-		var value: int = DIS.memory[i]
+		var value: int = DIS.mem[i]
 		var old_color: int = (value >> 4) if x % 2 == 0 else (value & 0x0F)
 
 		# Optionally set a new color
@@ -270,13 +302,13 @@ class DIS:
 
 
 	static func rect(x: int, y: int, width: int, height: int, color: int, fill: bool = false) -> void:
-		if x >= DIS.W or y >= DIS.H or x + width <= 0 or y + height <= 0:
+		if x >= DIS.W or y >= DIS.mem_h or x + width <= 0 or y + height <= 0:
 			return
 
 		var x_start: int = max(0, x)
 		var x_end: int = min(DIS.W, x + width)
 		var y_start: int = max(0, y)
-		var y_end: int = min(DIS.H, y + height)
+		var y_end: int = min(DIS.mem_h, y + height)
 
 		if fill:
 			for scan_y in range(y_start, y_end):
@@ -284,12 +316,12 @@ class DIS:
 					DIS._set_pixel(scan_x, scan_y, color)
 		else:
 			for scan_x in range(x_start, x_end):
-				DIS._set_pixel(scan_x, y_start, color)  # Top edge
-				DIS._set_pixel(scan_x, y_end - 1, color)  # Bottom edge
+				DIS._set_pixel(scan_x, y_start, color) # Top edge
+				DIS._set_pixel(scan_x, y_end - 1, color) # Bottom edge
 
 			for scan_y in range(y_start + 1, y_end - 1):
-				DIS._set_pixel(x_start, scan_y, color)  # Left edge
-				DIS._set_pixel(x_end - 1, scan_y, color)  # Right edge
+				DIS._set_pixel(x_start, scan_y, color) # Left edge
+				DIS._set_pixel(x_end - 1, scan_y, color) # Right edge
 
 
 	static func text(x: int, y: int, string: String, color: int, background: int = COL.BLACK) -> void:
@@ -297,7 +329,7 @@ class DIS:
 		var current_y = y
 
 		for ch in string:
-			if ch == "\n":  # Handle newline
+			if ch == "\n": # Handle newline
 				current_x = x
 				current_y += FONT.H
 				continue
@@ -306,7 +338,7 @@ class DIS:
 
 			# Handle wrapping if the text goes off the right edge
 			if current_x >= DIS.W:
-				if ch == " ":  # Handle space
+				if ch == " ": # Handle space
 					continue
 				current_x = x
 				current_y += FONT.H
@@ -325,18 +357,17 @@ class DIS:
 				var on: bool = (bits >> (py * FONT.W + px)) & 1
 				var tx: int = x + px
 				var ty: int = y + py
-				if tx < 0 or tx >= DIS.W or ty < 0 or ty >= DIS.H:
+				if tx < 0 or tx >= DIS.W or ty < 0 or ty >= DIS.mem_h:
 					continue
-				DIS._set_pixel(tx, ty, color if on else background)  # Immediate memory update
+				DIS._set_pixel(tx, ty, color if on else background) # Immediate memory update
 
 
 	static func blit(src_x: int, src_y: int, dest_x: int, dest_y: int, dest_w: int, dest_h: int) -> void:
-		#DIS.rect(dest_x - src_x, dest_y - src_y, src_w, src_h, COL.DARK_GRAY, true) # Debug, do not delete
-		var src: PackedByteArray = sprite
+		var src: PackedByteArray = DIS.sprite
 
 		for y in range(dest_h):
 			# Skip rows out of bounds
-			if dest_y + y < 0 or dest_y + y >= DIS.H:
+			if dest_y + y < 0 or dest_y + y >= DIS.mem_h:
 				continue
 
 			for x in range(dest_w):
@@ -349,11 +380,11 @@ class DIS:
 				var sy: int = src_y + y
 
 				# Skip out-of-bounds source pixels
-				if sx < 0 or sx >= SPRITE_SIZE or sy < 0 or sy >= SPRITE_SIZE:
+				if sx < 0 or sx >= DIS.SPRITE_SIZE or sy < 0 or sy >= DIS.SPRITE_SIZE:
 					continue
 
 				# Calculate source memory index
-				var i: int = (sy * SPRITE_SIZE + sx) / 2
+				var i: int = (sy * DIS.SPRITE_SIZE + sx) / 2
 
 				# Ensure index is within bounds of the source array
 				if i < 0 or i >= src.size():
@@ -368,26 +399,28 @@ class DIS:
 
 
 	static func clear(color: int = 0) -> void:
-		memory.fill(((color & 0x0F) << 4) | (color & 0x0F))
+		DIS.mem.fill(((color & 0x0F) << 4) | (color & 0x0F))
 
 
 	static func flip() -> void:
-		# Loop through each pixel in the display memory
-		for y in range(H):
-			for x in range(W):
-				# Calculate memory index and nibble
-				var index: int = int((y * W + x) / 2)
-				var is_high_nibble: bool = (x % 2 == 0)
-				var value: int = memory[index]
+		for y in range(DIS.HBAR + DIS.HVIEW + DIS.HBAR):
+			var buffer: PackedByteArray
+			var oy: int
+			if y < DIS.HBAR:
+				buffer = DIS.mem_top
+				oy = y
+			elif y < DIS.HBAR + DIS.HVIEW:
+				buffer = DIS.mem_view
+				oy = y - DIS.HBAR
+			else:
+				buffer = DIS.mem_bot
+				oy = y - DIS.HBAR - DIS.HVIEW
 
-				# Extract the color index
-				var color_index: int = (value >> 4) if is_high_nibble else (value & 0x0F)
+			for x in range(DIS.W):
+				var memory_byte = buffer[int((oy * DIS.W + x) / 2)]
+				DIS._img.set_pixel(x, y, COL.PAL[((memory_byte >> 4) if (x % 2 == 0) else (memory_byte & 0x0F)) % COL.PAL.size()])
 
-				# Set the pixel color in the Image
-				img.set_pixel(x, y, COL.PAL[color_index % COL.PAL.size()])
-
-		# Update the ImageTexture with the modified Image
-		tex.update(img)
+		DIS._tex.update(DIS._img)
 
 
 class SND:
@@ -477,7 +510,7 @@ class BTN:
 	const LEFT: int = 1 << 6
 	const RIGHT: int = 1 << 7
 
-	static var state: int = 0 # bitmask
+	static var state: int = 0 # Bitmask
 
 
 	static func pressed(button: int) -> bool:
@@ -529,7 +562,7 @@ func _ready() -> void:
 	node.set_expand_mode(TextureRect.EXPAND_IGNORE_SIZE)
 	node.set_texture_filter(CanvasItem.TEXTURE_FILTER_NEAREST)
 	add_child(node)
-	DIS.node_screen_main = node
+	DIS._node_screen = node
 
 	node = AudioStreamPlayer.new()
 	node.set_name("Speaker")
