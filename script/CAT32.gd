@@ -11,10 +11,7 @@ extends Node
 const FPS: int = 2
 const SAMPLE: float = 11025
 
-static var process: Node
-
-static var _tick_update: bool = false
-static var _tick_draw: bool = false
+static var process: Timer
 
 
 class COL:
@@ -584,7 +581,6 @@ func _ready() -> void:
 
 	process = Timer.new()
 	process.set_name("Process")
-	process.connect("timeout", _run_process)
 	process.set_wait_time(1.0 / FPS)
 	process.set_autostart(true)
 	add_child(process)
@@ -596,30 +592,20 @@ func _process(delta: float) -> void:
 	if not process:
 		return
 
-	if _tick_draw:
-		if process.has_method("draw"):
-			process.draw()
-			DIS.flip()
+	if process.has_method("draw"):
+		process.draw()
+		DIS.flip()
 
 	SND._process_buffer(delta)
 	BTN._process_state()
 
 
-func _run_process() -> void:
-	if not process:
-		return
-
-	if _tick_update:
-			process.update()
-
-
 func run(script: String):
-	process
+	if process.has_method("update"):
+		if process.timeout.is_connected(process.update):
+			process.disconnect("timeout", process.update)
 
 	process.set_script(load(script))
-
-	_tick_update = false
-	_tick_draw = false
 
 	if "gfx" in process:
 		DIS.sprite = process.gfx.strip_escapes().hex_decode()
@@ -628,14 +614,9 @@ func run(script: String):
 	if process.has_method("init"):
 		await process.init()
 
-	_tick_update = true
-	_tick_draw = true
-
 	if process.has_method("update"):
-		var t = Timer.new()
-		process.add_child(t)
-		print("Timer created!", t)
-		# TODO process IS a timer
+		if not process.timeout.is_connected(process.update):
+			process.connect("timeout", process.update)
 
 
 func timer(duration: float) -> void:
@@ -648,17 +629,16 @@ func random(value: float = 1.0) -> float:
 
 func o(
 	arg0:Variant,
-	arg1 :Variant=null,
-	arg2 :Variant=null,
-	arg3 :Variant=null,
-	arg4 :Variant=null,
-	arg5 :Variant=null,
-	arg6 :Variant=null,
-	arg7 :Variant=null,
-	arg8 :Variant=null,
-	arg9 :Variant=null) -> void:
+	arg1:Variant = null,
+	arg2:Variant = null,
+	arg3:Variant = null,
+	arg4:Variant = null,
+	arg5:Variant = null,
+	arg6:Variant = null,
+	arg7:Variant = null,
+	) -> void:
 	var args: Array[Variant] = [
-		arg0, arg1, arg2, arg3, arg4, arg5, arg6, arg7, arg8, arg9
+		arg0, arg1, arg2, arg3, arg4, arg5, arg6, arg7,
 	].filter(func(value:Variant) -> bool: return value != null)
 
 	print("%s ".repeat(args.size()).strip_edges() % args)
