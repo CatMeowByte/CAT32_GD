@@ -22,4 +22,8 @@ func init():
 	await beep(COL.WHITE, 880.0, 0.5)
 	await beep(COL.BLACK, 0, 0.25)
 
-	run("res://script/main.cat.gd")
+	run("res://script/snake.cat.gd")
+	#if int(random(3)) % 3 == 0:
+		#run("res://script/snake.cat.gd")
+	#else:
+		#run("res://script/boot.cat.gd")

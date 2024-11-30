@@ -8,7 +8,7 @@ extends Node
 
 @export_file() var init_file: String = "res://script/boot.cat.gd"
 
-const FPS: int = 30
+const FPS: int = 2
 const SAMPLE: float = 11025
 
 static var process: Node
@@ -582,8 +582,11 @@ func _ready() -> void:
 	DIS._setup()
 	SND._setup()
 
-	process = Node.new()
+	process = Timer.new()
 	process.set_name("Process")
+	process.connect("timeout", _run_process)
+	process.set_wait_time(1.0 / FPS)
+	process.set_autostart(true)
 	add_child(process)
 
 	run(init_file)
@@ -611,8 +614,7 @@ func _run_process() -> void:
 
 
 func run(script: String):
-	for child in process.get_children():
-		child.queue_free()
+	process
 
 	process.set_script(load(script))
 
@@ -631,15 +633,35 @@ func run(script: String):
 
 	if process.has_method("update"):
 		var t = Timer.new()
-		t.connect("timeout", _run_process)
-		t.set_wait_time(1.0 / FPS)
-		t.set_autostart(true)
 		process.add_child(t)
+		print("Timer created!", t)
+		# TODO process IS a timer
 
 
 func timer(duration: float) -> void:
 	await get_tree().create_timer(duration).timeout
 
+
+func random(value: float = 1.0) -> float:
+	return randf() * value
+
+
+func o(
+	arg0:Variant,
+	arg1 :Variant=null,
+	arg2 :Variant=null,
+	arg3 :Variant=null,
+	arg4 :Variant=null,
+	arg5 :Variant=null,
+	arg6 :Variant=null,
+	arg7 :Variant=null,
+	arg8 :Variant=null,
+	arg9 :Variant=null) -> void:
+	var args: Array[Variant] = [
+		arg0, arg1, arg2, arg3, arg4, arg5, arg6, arg7, arg8, arg9
+	].filter(func(value:Variant) -> bool: return value != null)
+
+	print("%s ".repeat(args.size()).strip_edges() % args)
 
 func hi() -> void:
 	print("Hi, all!")
