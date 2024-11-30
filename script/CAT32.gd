@@ -8,7 +8,7 @@ extends Node
 
 @export_file() var init_file: String = "res://script/boot.cat.gd"
 
-const FPS: int = 2
+const FPS: int = 30
 const SAMPLE: float = 11025
 
 static var process: Timer
@@ -642,6 +642,7 @@ func o(
 	].filter(func(value:Variant) -> bool: return value != null)
 
 	print("%s ".repeat(args.size()).strip_edges() % args)
+
 
 func hi() -> void:
 	print("Hi, all!")
