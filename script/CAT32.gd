@@ -543,7 +543,7 @@ class BTN:
 			state |= RIGHT
 
 		# CANCEL
-		if Input.is_key_pressed(KEY_SHIFT):
+		if Input.is_key_pressed(KEY_SHIFT) or Input.is_key_pressed(KEY_BACKSPACE):
 			state |= CANCEL
 
 		# ACCEPT
