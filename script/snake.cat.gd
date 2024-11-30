@@ -1,7 +1,8 @@
 extends CAT32
 
 const BODY_COUNT = 16
-const FOOD_COUNT = 512
+const FOOD_COUNT = 32
+const MAP_SIZE = 30  # Size of the game map
 
 var snake = []
 var dir = [1 , 0]
@@ -22,14 +23,14 @@ func init():
 func update():
 	if state == "menu" or state == "options":
 		if f % 4 == 0:
-			menu_input()
+			menu_and_options_input()
 		f = (f + 1) % 4
 	else:
 		if f % (2 - boost) == 0:
 			tick()
 		f = (f + 1) % (2 - boost)
 
-func menu_input():
+func menu_and_options_input():
 	var sel = menu_sel if state == "menu" else options_sel
 	var items_size = menu_items.size() if state == "menu" else options_items.size()
 
@@ -58,7 +59,8 @@ func menu_input():
 			play_sound(SND.get_freq("A", 6), 1.0 / 20.0)
 	elif BTN.pressed(BTN.CANCEL) and state == "options":
 		state = "menu"
-		play_sound(SND.get_freq("C", 4), 1.0 / 20.0)
+	elif BTN.pressed(BTN.CANCEL) and state == "play":
+		state = "menu"
 
 	if state == "menu":
 		menu_sel = sel
@@ -79,8 +81,8 @@ func tick():
 	else:
 		snake.pop_back()
 
-	# Collision
-	if head[0] < 0 or head[1] < 0 or head[0] >= DIS.W or head[1] >= DIS.HVIEW:
+	# Collision with map boundaries
+	if head[0] < 0 or head[1] < 0 or head[0] >= MAP_SIZE or head[1] >= MAP_SIZE:
 		restart(1)
 
 	for i in range(1, snake.size()):
@@ -108,46 +110,42 @@ func input():
 		dir = [1, 0]
 	elif BTN.pressed(BTN.CANCEL):
 		state = "menu"
-		play_sound(SND.get_freq("C", 4), 1.0 / 20.0)
 
 func draw():
-	if state == "menu":
+	if state == "menu" or state == "options":
 		draw_menu()
-	elif state == "options":
-		draw_options()
 	else:
 		input()
 		draw_game()
 
 func draw_menu():
+	DIS.camera()
 	DIS.clear(COL.DARK_PURPLE)
-	DIS.text(8, 8, "SNAKE", COL.WHITE)
+	var title = "SNAKE" if state == "menu" else "OPTIONS"
+	DIS.text(8, 8, title, COL.WHITE)
 	COL.mask(COL.BLACK, 0)
 	COL.mask(COL.PINK, 1)
-	for i in range(menu_items.size()):
-		var fg = COL.WHITE if i == menu_sel else COL.LIGHT_GRAY
-		var bg = COL.BLACK if i == menu_sel else COL.PINK
-		DIS.text(8, 16 + (i * 8), menu_items[i], fg, bg)
-	COL.mask()
+	var items = menu_items if state == "menu" else options_items
+	var sel = menu_sel if state == "menu" else options_sel
 
-func draw_options():
-	DIS.clear(COL.DARK_PURPLE)
-	DIS.text(8, 8, "OPTIONS", COL.WHITE)
-	COL.mask(COL.BLACK, 0)
-	COL.mask(COL.PINK, 1)
-	for i in range(options_items.size()):
-		var fg = COL.WHITE if i == options_sel else COL.LIGHT_GRAY
-		var bg = COL.BLACK if i == options_sel else COL.PINK
-		var value = "ON" if (i == 0 and sound_enabled) or (i == 1 and highlight_food) else "OFF"
-		DIS.text(8, 16 + (i * 8), options_items[i] + ": " + value, fg, bg)
+	for i in range(items.size()):
+		var fg = COL.WHITE if i == sel else COL.LIGHT_GRAY
+		var bg = COL.BLACK if i == sel else COL.PINK
+		var text = items[i]
+		if state == "options":
+			var value = "ON" if (i == 0 and sound_enabled) or (i == 1 and highlight_food) else "OFF"
+			text += ": " + value
+		DIS.text(8, 16 + (i * 8), text, fg, bg)
 	COL.mask()
 
 func draw_game():
+	DIS.camera((-DIS.W + MAP_SIZE) / 2, (-DIS.HVIEW + MAP_SIZE) / 2)
 	DIS.clear(COL.DARK_BLUE)
-	var flip = 1 if snake[0][0] < DIS.W / 2 or snake[0][1] < DIS.HVIEW / 2 else 0
+	DIS.rect(-1, -1, MAP_SIZE + 2, MAP_SIZE + 2, COL.DARK_GRAY)
+
 	var score = str(snake.size() - BODY_COUNT)
 	COL.mask(COL.BLACK, 0)
-	DIS.text((DIS.W - 4 * score.length()) * flip, (DIS.HVIEW - 8) * flip, score, COL.WHITE, COL.BLACK)
+	DIS.text((MAP_SIZE / 2 - 2 * score.length()), -8, score, COL.WHITE, COL.BLACK)
 	COL.mask()
 	for d in food:
 		if highlight_food and is_food_in_snake_path(d):
@@ -173,14 +171,14 @@ func is_food_in_snake_path(food_pos):
 
 func spawn_food():
 	while food.size() < FOOD_COUNT:
-		var new_food = [int(random(DIS.W)), int(random(DIS.HVIEW))]
+		var new_food = [int(random(MAP_SIZE)), int(random(MAP_SIZE))]
 		if new_food not in snake and new_food not in food:
 			food.append(new_food)
 
 func restart(sound = 0):
 	snake = []
 	for s in range(BODY_COUNT):
-		snake.append([DIS.W / 2 - s, DIS.HVIEW / 2])
+		snake.append([MAP_SIZE / 2 - s, MAP_SIZE / 2])
 	dir = [1, 0]
 	spawn_food()
 	state = "menu"
