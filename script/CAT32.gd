@@ -261,7 +261,7 @@ class DIS:
 
 
 	static func _pixel_set(x: int, y: int, color: int) -> void:
-		if x >= DIS.W or y >= DIS.mem_h or x < 0 or y < 0:
+		if x < 0 or x >= DIS.W or y < 0 or y >= DIS.mem_h:
 			return
 		if (COL._mask & (1 << color)) != 0:
 			return
@@ -377,7 +377,7 @@ class DIS:
 				var ty: int = y + py
 				if tx < 0 or tx >= DIS.W or ty < 0 or ty >= DIS.mem_h:
 					continue
-				DIS._pixel_set(tx, ty, color if on else background) # Immediate memory update
+				DIS._pixel_set(tx, ty, color if on else background)
 
 
 	static func blit(src_x: int, src_y: int, dest_x: int, dest_y: int, dest_w: int, dest_h: int) -> void: # FIXME: feels like something missing, recheck pico 8
@@ -386,36 +386,25 @@ class DIS:
 		var src: PackedByteArray = DIS.sprite
 
 		for y in range(dest_h):
-			# Skip rows out of bounds
 			if dest_y + y < 0 or dest_y + y >= DIS.mem_h:
 				continue
 
 			for x in range(dest_w):
-				# Skip columns out of bounds
 				if dest_x + x < 0 or dest_x + x >= DIS.W:
 					continue
 
-				# Source pixel coordinates
 				var sx: int = src_x + x
 				var sy: int = src_y + y
-
-				# Skip out-of-bounds source pixels
 				if sx < 0 or sx >= DIS.SPRITE_SIZE or sy < 0 or sy >= DIS.SPRITE_SIZE:
 					continue
-
-				# Calculate source memory index
 				var i: int = (sy * DIS.SPRITE_SIZE + sx) / 2
 
-				# Ensure index is within bounds of the source array
 				if i < 0 or i >= src.size():
 					continue
 
-				# Extract the pixel color
 				var color: int = (src[i] >> 4) if sx % 2 == 0 else (src[i] & 0x0F)
 
-				# Set the pixel in the destination
 				_pixel_set(dest_x + x, dest_y + y, color)
-
 
 
 	static func clear(color: int = 0) -> void:

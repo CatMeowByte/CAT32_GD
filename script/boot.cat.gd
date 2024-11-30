@@ -1,5 +1,6 @@
 extends CAT32
 
+
 func beep(c, t, d):
 	DIS.clear(c)
 	DIS.flip()
