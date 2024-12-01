@@ -1,17 +1,19 @@
 class_name CAT32
 extends Node
 
-# TODO:
+# NOTICE:
 # strip complexity, keep it minimal
 # make pico8 as a base
 # consider betwween class based or global func
 
 @export_file() var init_file: String = "res://script/boot.cat.gd"
+@export_global_dir() var dir_root: String = "/home/catmeowbyte/CAT32/"
 
 const FPS: int = 30
 const SAMPLE: float = 11025
 
 static var process: Timer
+static var service: Timer
 
 
 class COL:
@@ -194,7 +196,7 @@ class DIS:
 	const MEM_TOP = 1
 	const MEM_BOT =2
 
-	static var _node_screen: TextureRect
+	static var _screen: TextureRect
 	static var _img: Image
 	static var _tex: ImageTexture
 
@@ -214,7 +216,7 @@ class DIS:
 	static func _setup() -> void:
 		DIS._img = Image.create_empty(DIS.W, DIS.HBAR + DIS.HVIEW + DIS.HBAR, false, Image.FORMAT_RGB8)
 		DIS._tex = ImageTexture.create_from_image(DIS._img)
-		DIS._node_screen.texture = DIS._tex
+		DIS._screen.texture = DIS._tex
 
 		DIS.mem_top.resize((DIS.W * DIS.HBAR) / 2)
 		DIS.mem_top.fill(0)
@@ -508,6 +510,13 @@ class IOP:
 	pass
 
 
+class DIR:
+	static var _crawler: DirAccess
+
+	static func _setup() -> void:
+		DIR._crawler = DirAccess.new()
+
+
 class BTN:
 	const CANCEL: int = 1 << 0
 	const ACCEPT: int = 1 << 1
@@ -570,7 +579,7 @@ func _ready() -> void:
 	node.set_expand_mode(TextureRect.EXPAND_IGNORE_SIZE)
 	node.set_texture_filter(CanvasItem.TEXTURE_FILTER_NEAREST)
 	add_child(node)
-	DIS._node_screen = node
+	DIS._screen = node
 
 	node = AudioStreamPlayer.new()
 	node.set_name("Speaker")
@@ -580,6 +589,7 @@ func _ready() -> void:
 
 	DIS._setup()
 	SND._setup()
+	DIR._setup()
 
 	process = Timer.new()
 	process.set_name("Process")
