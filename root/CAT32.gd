@@ -6,7 +6,7 @@ extends Node
 # make pico8 as a base
 # consider betwween class based or global func
 
-const ROOT: String = "/home/catmeowbyte/CAT32"
+const ROOT: String = "res://root/"
 
 const FPS: int = 30
 const SAMPLE: float = 11025
