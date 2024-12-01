@@ -199,7 +199,7 @@ class DIS:
 	static var _tex: ImageTexture
 
 	static var mem: PackedByteArray # Pointer
-	static var mem_h: int = 0
+	static var H: int = 0 # Simulate constant
 	static var mem_top: PackedByteArray
 	static var mem_view: PackedByteArray
 	static var mem_bot: PackedByteArray
@@ -208,6 +208,7 @@ class DIS:
 
 	static var cam_x: int = 0
 	static var cam_y: int = 0
+	static var text_wrap: bool = false
 
 
 	static func _setup() -> void:
@@ -232,13 +233,13 @@ class DIS:
 	static func memsel(id: int = DIS.MEM_VIEW) -> void:
 		if id == DIS.MEM_VIEW:
 			DIS.mem = DIS.mem_view
-			DIS.mem_h = DIS.HVIEW
+			DIS.H = DIS.HVIEW
 		elif id == DIS.MEM_TOP:
 			DIS.mem = DIS.mem_top
-			DIS.mem_h = DIS.HBAR
+			DIS.H = DIS.HBAR
 		else: # DIS.MEM_BOT
 			DIS.mem = DIS.mem_bot
-			DIS.mem_h = DIS.HBAR
+			DIS.H = DIS.HBAR
 
 
 	static func camera(x: int = 0, y: int = 0) -> PackedInt32Array:
@@ -251,14 +252,14 @@ class DIS:
 
 
 	static func _pixel_get(x: int, y: int) -> int:
-		if x < 0 or x >= DIS.W or y < 0 or y >= DIS.mem_h:
+		if x < 0 or x >= DIS.W or y < 0 or y >= DIS.H:
 			return -1
 		var i: int = (y * DIS.W + x) / 2
 		return (DIS.mem[i] >> 4) if x % 2 == 0 else (DIS.mem[i] & 0x0F)
 
 
 	static func _pixel_set(x: int, y: int, color: int) -> void:
-		if x < 0 or x >= DIS.W or y < 0 or y >= DIS.mem_h:
+		if x < 0 or x >= DIS.W or y < 0 or y >= DIS.H:
 			return
 		if (COL._mask & (1 << color)) != 0:
 			return
@@ -273,7 +274,7 @@ class DIS:
 	static func pixel(x: int, y: int, color: int = -1) -> int:
 		x -= DIS.cam_x
 		y -= DIS.cam_y
-		if x < 0 or x >= DIS.W or y < 0 or y >= DIS.mem_h:
+		if x < 0 or x >= DIS.W or y < 0 or y >= DIS.H:
 			return -1
 
 		var i: int = int((y * DIS.W + x) / 2)
@@ -315,13 +316,13 @@ class DIS:
 	static func rect(x: int, y: int, width: int, height: int, color: int, fill: bool = false) -> void:
 		x -= DIS.cam_x
 		y -= DIS.cam_y
-		if x >= DIS.W or y >= DIS.mem_h or x + width <= 0 or y + height <= 0:
+		if x >= DIS.W or y >= DIS.H or x + width <= 0 or y + height <= 0:
 			return
 
 		var x_start: int = max(0, x)
 		var x_end: int = min(DIS.W, x + width)
 		var y_start: int = max(0, y)
-		var y_end: int = min(DIS.mem_h, y + height)
+		var y_end: int = min(DIS.H, y + height)
 
 		if fill:
 			for scan_y in range(y_start, y_end):
@@ -352,18 +353,19 @@ class DIS:
 			var ordinal: int = ch.unicode_at(0)
 
 			# Wrapping
-			if current_x >= DIS.W:
-				if ch == " ": # Space
-					continue
-				current_x = x
-				current_y += FONT.H
+			if DIS.text_wrap:
+				if current_x >= DIS.W:
+					if ch == " ": # Space
+						continue
+					current_x = x
+					current_y += FONT.H
 
 			DIS.character(current_x, current_y, ordinal, color, background)
 			current_x += FONT.W
 
 
 	static func character(x: int, y: int, ordinal: int, color: int, background: int = COL.BLACK) -> void:
-		if x < -FONT.W or x >= DIS.W or y < -FONT.H or y >= DIS.mem_h:
+		if x < -FONT.W or x >= DIS.W or y < -FONT.H or y >= DIS.H:
 			return
 
 		var bits: int = FONT.CHAR.get(ordinal, 0)
@@ -372,7 +374,7 @@ class DIS:
 				var on: bool = (bits >> (py * FONT.W + px)) & 1
 				var tx: int = x + px
 				var ty: int = y + py
-				if tx < 0 or tx >= DIS.W or ty < 0 or ty >= DIS.mem_h:
+				if tx < 0 or tx >= DIS.W or ty < 0 or ty >= DIS.H:
 					continue
 				DIS._pixel_set(tx, ty, color if on else background)
 
@@ -383,7 +385,7 @@ class DIS:
 		var src: PackedByteArray = DIS.sprite
 
 		for y in range(dest_h):
-			if dest_y + y < 0 or dest_y + y >= DIS.mem_h:
+			if dest_y + y < 0 or dest_y + y >= DIS.H:
 				continue
 
 			for x in range(dest_w):

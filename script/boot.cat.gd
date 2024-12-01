@@ -22,4 +22,4 @@ func init():
 	await beep(COL.WHITE, 880.0, 0.5)
 	await beep(COL.BLACK, 0, 0.25)
 
-	run("res://script/snake.cat.gd")
+	run("res://script/fm.cat.gd")

@@ -23,14 +23,14 @@ func init():
 func update():
 	if state == "menu" or state == "options":
 		if f % 4 == 0:
-			menu_and_options_input()
+			menu_input()
 		f = (f + 1) % 4
 	else:
 		if f % (2 - boost) == 0:
 			tick()
 		f = (f + 1) % (2 - boost)
 
-func menu_and_options_input():
+func menu_input():
 	var sel = menu_sel if state == "menu" else options_sel
 	var items_size = menu_items.size() if state == "menu" else options_items.size()
 
@@ -139,7 +139,7 @@ func draw_menu():
 	COL.mask()
 
 func draw_game():
-	DIS.camera((-DIS.W + MAP_SIZE) / 2, (-DIS.HVIEW + MAP_SIZE) / 2)
+	DIS.camera((-DIS.W + MAP_SIZE) / 2, (-DIS.H + MAP_SIZE) / 2)
 	DIS.clear(COL.DARK_BLUE)
 	DIS.rect(-1, -1, MAP_SIZE + 2, MAP_SIZE + 2, COL.DARK_GRAY)
 
