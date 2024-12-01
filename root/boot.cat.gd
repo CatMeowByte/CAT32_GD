@@ -1,12 +1,10 @@
 extends CAT32
 
-
 func beep(c, t, d):
 	DIS.clear(c)
 	DIS.flip()
 	SND.play_tone(t, d)
 	await timer(d)
-
 
 func init():
 	DIS.memsel(DIS.MEM_TOP)
@@ -22,4 +20,4 @@ func init():
 	await beep(COL.WHITE, 880.0, 0.5)
 	await beep(COL.BLACK, 0, 0.25)
 
-	run("res://script/fm.cat.gd")
+	run("/bin/fm.cat.gd")

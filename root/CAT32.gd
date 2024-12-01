@@ -6,8 +6,7 @@ extends Node
 # make pico8 as a base
 # consider betwween class based or global func
 
-@export_file() var init_file: String = "res://script/boot.cat.gd"
-@export_global_dir() var dir_root: String = "/home/catmeowbyte/CAT32/"
+const ROOT: String = "/home/catmeowbyte/CAT32"
 
 const FPS: int = 30
 const SAMPLE: float = 11025
@@ -513,8 +512,15 @@ class IOP:
 class DIR:
 	static var _crawler: DirAccess
 
-	static func _setup() -> void:
-		DIR._crawler = DirAccess.new()
+	static func ls_dir(path: String, hidden: bool = false) -> PackedStringArray:
+		DIR._crawler.set_include_hidden(hidden)
+		DIR._crawler.change_dir(ROOT.path_join(path))
+		return DIR._crawler.get_directories()
+
+	static func ls_file(path: String, hidden: bool = false) -> PackedStringArray:
+		DIR._crawler.set_include_hidden(hidden)
+		DIR._crawler.change_dir(ROOT.path_join(path))
+		return DIR._crawler.get_files()
 
 
 class BTN:
@@ -587,9 +593,10 @@ func _ready() -> void:
 	add_child(node)
 	SND.node_speaker = node
 
+	DIR._crawler = DirAccess.open(ROOT)
+
 	DIS._setup()
 	SND._setup()
-	DIR._setup()
 
 	process = Timer.new()
 	process.set_name("Process")
@@ -597,7 +604,7 @@ func _ready() -> void:
 	process.set_autostart(true)
 	add_child(process)
 
-	run(init_file)
+	run("/boot.cat.gd")
 
 
 func _process(delta: float) -> void:
@@ -617,7 +624,7 @@ func run(script: String):
 		if process.timeout.is_connected(process.update):
 			process.disconnect("timeout", process.update)
 
-	process.set_script(load(script))
+	process.set_script(load(ROOT.path_join(script)))
 
 	if "gfx" in process:
 		DIS.sprite = process.gfx.strip_escapes().hex_decode()

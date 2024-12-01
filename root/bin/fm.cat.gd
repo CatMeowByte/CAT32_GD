@@ -1,7 +1,8 @@
 extends CAT32
 
-var path = "/home/catmeowbyte/"
+var path = "/"
 var ls = {}
 
 func init():
-	o(DirAccess.get_files_at(path))
+	o(DIR.ls_dir(path))
+	o(DIR.ls_file(path))
