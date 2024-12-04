@@ -379,32 +379,68 @@ class DIS:
 					continue
 				DIS._pixel_set(tx, ty, color if on else background)
 
-
-	static func blit(src_x: int, src_y: int, dest_x: int, dest_y: int, dest_w: int, dest_h: int) -> void: # FIXME: feels like something missing, recheck pico 8
+	static func blit(
+		src: PackedByteArray,
+		src_size_w: int, src_size_h: int,
+		src_x: int, src_y: int, src_w: int, src_h: int,
+		dest_size_w: int, dest_size_h: int,
+		dest_x: int, dest_y: int, dest_w: int, dest_h: int,
+		rotation: int = 0
+	) -> void:
 		dest_x -= DIS.cam_x
 		dest_y -= DIS.cam_y
-		var src: PackedByteArray = DIS.sprite
+
+		# Determine if flipping is required based on destination size
+		var flip_h: bool = dest_w < 0
+		var flip_v: bool = dest_h < 0
+
+		# Use absolute values for destination width and height
+		dest_w = abs(dest_w)
+		dest_h = abs(dest_h)
+
+		# Determine scaling factors for the source to destination mapping
+		var scale_x: float = float(src_w) / float(dest_w)
+		var scale_y: float = float(src_h) / float(dest_h)
 
 		for y in range(dest_h):
-			if dest_y + y < 0 or dest_y + y >= DIS.H:
+			if dest_y + y < 0 or dest_y + y >= dest_size_h:
 				continue
 
 			for x in range(dest_w):
-				if dest_x + x < 0 or dest_x + x >= DIS.W:
+				if dest_x + x < 0 or dest_x + x >= dest_size_w:
 					continue
 
-				var sx: int = src_x + x
-				var sy: int = src_y + y
-				if sx < 0 or sx >= DIS.SPRITE_SIZE or sy < 0 or sy >= DIS.SPRITE_SIZE:
+				# Calculate source coordinates based on scaling, flip, and rotation
+				var sx: int
+				var sy: int
+
+				if rotation == 0:
+					sx = int(src_x + (src_w - 1 - x * scale_x) if flip_h else src_x + x * scale_x)
+					sy = int(src_y + (src_h - 1 - y * scale_y) if flip_v else src_y + y * scale_y)
+				elif rotation == 1:
+					sx = int(src_x + (src_h - 1 - y * scale_y) if flip_v else src_x + y * scale_y)
+					sy = int(src_y + (src_w - 1 - x * scale_x) if flip_h else src_y + x * scale_x)
+				elif rotation == 2:
+					sx = int(src_x + (src_w - 1 - x * scale_x) if not flip_h else src_x + x * scale_x)
+					sy = int(src_y + (src_h - 1 - y * scale_y) if not flip_v else src_y + y * scale_y)
+				elif rotation == 3:
+					sx = int(src_x + (src_h - 1 - y * scale_y) if not flip_v else src_x + y * scale_y)
+					sy = int(src_y + (src_w - 1 - x * scale_x) if not flip_h else src_y + x * scale_x)
+
+				if sx < 0 or sx >= src_size_w or sy < 0 or sy >= src_size_h:
 					continue
-				var i: int = (sy * DIS.SPRITE_SIZE + sx) / 2
+
+				var i: int = (sy * src_size_w + sx) / 2
 
 				if i < 0 or i >= src.size():
 					continue
 
 				var color: int = (src[i] >> 4) if sx % 2 == 0 else (src[i] & 0x0F)
 
-				_pixel_set(dest_x + x, dest_y + y, color)
+				DIS._pixel_set(dest_x + x, dest_y + y, color)
+
+
+
 
 
 	static func clear(color: int = 0) -> void:

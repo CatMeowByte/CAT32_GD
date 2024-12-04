@@ -1,36 +1,59 @@
 extends CAT32
 
+# Define the sprite position and size as variables
+var sprite_index = 0
+var sprite_size = 16
+var current_scale_x = 16
+var current_scale_y = 16
+var current_rotation = 0
 
-var lorem: String = "lorem ipsum dolor adspiticing elitr baf shoir kewulob kon gerdia pozeny mekloe wamti e yuvep"
-
-
-class player:
-	static var pos: Vector2 = Vector2(0, 0)
-	static var spd = 0.5
-
-
-func update() -> void:
-	player.pos.x += (int(BTN.pressed(BTN.RIGHT)) - int(BTN.pressed(BTN.LEFT))) * player.spd
-	player.pos.y += (int(BTN.pressed(BTN.DOWN)) - int(BTN.pressed(BTN.UP))) * player.spd
-
-
-func draw() -> void:
+func init():
 	DIS.clear(COL.DARK_BLUE)
-	DIS.text(32, 120, "Hi, all!", COL.WHITE)
-	DIS.line(10, 90, 110, 120, COL.RED)
-	DIS.rect(10, 10, 50, 60, COL.RED, true)
-	DIS.rect(20, 20, 40, 20, COL.GREEN, false)
-	COL.mask(COL.INDIGO, true)
-	COL.mask(COL.BLACK, false)
-	DIS.text(player.pos.x + 32, player.pos.y + 32, "what?\nbut it doesn't makes sense!" + lorem, COL.INDIGO)
-	COL.mask()
+	draw_current_test()
+	DIS.flip()
 
-	DIS.pixel(player.pos.x, player.pos.y, COL.WHITE)
-	DIS.text(player.pos.x + 4, player.pos.y + 4, "[" + str(player.pos.x) + "," + str(player.pos.y) + "]", COL.WHITE)
-	DIS.camera(player.pos.x / 2, player.pos.y / 2)
+func draw_current_test():
+	var sprite_x = (sprite_index % (128 / sprite_size)) * sprite_size
+	var sprite_y = int(sprite_index / (128 / sprite_size)) * sprite_size
+	DIS.clear(COL.DARK_BLUE)
 
-	# Blit the sprite onto the screen
-	DIS.blit(DIS.sprite, player.pos.x, player.pos.y, 16, 16, 64, 64)
+	DIS.blit(
+		DIS.sprite,
+		DIS.SPRITE_SIZE, DIS.SPRITE_SIZE,
+		sprite_x, sprite_y, sprite_size, sprite_size,
+		DIS.W, DIS.H,
+		52, 72, current_scale_x, current_scale_y,
+		current_rotation
+	)
+
+
+	DIS.text(0, 0, "Scaling Test", COL.WHITE)
+	DIS.text(0, 8, "Rotation: " + str(current_rotation * 90) + " degrees", COL.WHITE)
+	DIS.text(0, 16, "Scale X: " + str(current_scale_x) + ", Scale Y: " + str(current_scale_y), COL.WHITE)
+	DIS.text(0, 24, "Sprite Index: " + str(sprite_index), COL.WHITE)
+	DIS.flip()
+
+func update():
+	if BTN.pressed(BTN.RIGHT):
+		current_scale_x += 1
+		draw_current_test()
+	elif BTN.pressed(BTN.LEFT):
+		current_scale_x -= 1
+		draw_current_test()
+	elif BTN.pressed(BTN.UP):
+		current_scale_y += 1
+		draw_current_test()
+	elif BTN.pressed(BTN.DOWN):
+		current_scale_y -= 1
+		draw_current_test()
+	elif BTN.pressed(BTN.ACCEPT):
+		# Cycle through sprites
+		sprite_index = (sprite_index + 1) % ((128 / sprite_size) * (128 / sprite_size))
+		draw_current_test()
+	elif BTN.pressed(BTN.CANCEL):
+		# Cycle through rotations (0, 90, 180, 270 degrees)
+		current_rotation = (current_rotation + 1) % 4
+		draw_current_test()
 
 var gfx = """
 00cc000677666701111000111011100001110000011100011101110000111000001110001111100011110000111100e6000000000700000000000e0000000070

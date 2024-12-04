@@ -20,4 +20,4 @@ func init():
 	await beep(COL.WHITE, 880.0, 0.5)
 	await beep(COL.BLACK, 0, 0.25)
 
-	run("/bin/fm.cat.gd")
+	run("/app/blittest.cat.gd")

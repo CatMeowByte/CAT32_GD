@@ -23,6 +23,7 @@ gdscript/warnings/integer_division=0
 
 window/size/viewport_width=240
 window/size/viewport_height=320
+window/size/always_on_top=true
 window/stretch/scale_mode="integer"
 window/handheld/orientation=1
 
