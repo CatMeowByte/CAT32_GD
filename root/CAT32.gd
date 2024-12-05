@@ -207,8 +207,7 @@ class DIS:
 
 	static var sprite: PackedByteArray
 
-	static var cam_x: int = 0
-	static var cam_y: int = 0
+	static var cam: PackedInt32Array = [0, 0]
 	static var text_wrap: bool = false
 
 
@@ -226,12 +225,13 @@ class DIS:
 		DIS.mem_bot.resize((DIS.W * DIS.HBAR) / 2)
 		DIS.mem_bot.fill(0)
 
-		memsel()
+		DIS.memsel()
 
-		sprite.resize((DIS.SPRITE_SIZE * DIS.SPRITE_SIZE) / 2)
+		DIS.sprite.resize((DIS.SPRITE_SIZE * DIS.SPRITE_SIZE) / 2)
 
 
 	static func memsel(id: int = DIS.MEM_VIEW) -> void:
+		DIS.cam = [0, 0]
 		if id == DIS.MEM_VIEW:
 			DIS.mem = DIS.mem_view
 			DIS.H = DIS.HVIEW
@@ -244,10 +244,9 @@ class DIS:
 
 
 	static func camera(x: int = 0, y: int = 0) -> PackedInt32Array:
-		var p: PackedInt32Array = [DIS.cam_x, DIS.cam_y]
+		var p: PackedInt32Array = DIS.cam
 
-		DIS.cam_x = x
-		DIS.cam_y = y
+		DIS.cam = [x, y]
 
 		return p
 
@@ -273,8 +272,8 @@ class DIS:
 
 
 	static func pixel(x: int, y: int, color: int = -1) -> int:
-		x -= DIS.cam_x
-		y -= DIS.cam_y
+		x -= DIS.cam[0]
+		y -= DIS.cam[1]
 		if x < 0 or x >= DIS.W or y < 0 or y >= DIS.H:
 			return -1
 
@@ -289,10 +288,10 @@ class DIS:
 
 
 	static func line(x1: int, y1: int, x2: int, y2: int, color: int) -> void:
-		x1 -= DIS.cam_x
-		y1 -= DIS.cam_y
-		x2 -= DIS.cam_x
-		y2 -= DIS.cam_y
+		x1 -= DIS.cam[0]
+		y1 -= DIS.cam[1]
+		x2 -= DIS.cam[0]
+		y2 -= DIS.cam[1]
 		var dx: int = abs(x2 - x1)
 		var dy: int = abs(y2 - y1)
 		var sx: int = 1 if x1 < x2 else -1
@@ -315,8 +314,8 @@ class DIS:
 
 
 	static func rect(x: int, y: int, width: int, height: int, color: int, fill: bool = false) -> void:
-		x -= DIS.cam_x
-		y -= DIS.cam_y
+		x -= DIS.cam[0]
+		y -= DIS.cam[1]
 		if x >= DIS.W or y >= DIS.H or x + width <= 0 or y + height <= 0:
 			return
 
@@ -340,8 +339,8 @@ class DIS:
 
 
 	static func text(x: int, y: int, string: String, color: int, background: int = COL.BLACK) -> void:
-		x -= DIS.cam_x
-		y -= DIS.cam_y
+		x -= DIS.cam[0]
+		y -= DIS.cam[1]
 		var current_x: int = x
 		var current_y: int = y
 
@@ -387,8 +386,8 @@ class DIS:
 		dest_x: int, dest_y: int, dest_w: int, dest_h: int,
 		rotation: int = 0
 	) -> void:
-		dest_x -= DIS.cam_x
-		dest_y -= DIS.cam_y
+		dest_x -= DIS.cam[0]
+		dest_y -= DIS.cam[1]
 
 		# Determine if flipping is required based on destination size
 		var flip_h: bool = dest_w < 0
@@ -481,7 +480,7 @@ class SND:
 		"B": 493.88
 	}
 
-	static var node_speaker: AudioStreamPlayer
+	static var _speaker: AudioStreamPlayer
 	static var volume: float = 1.0
 	static var play: bool = true
 
@@ -494,10 +493,10 @@ class SND:
 
 
 	static func _setup() -> void:
-		node_speaker.get_stream().set_mix_rate(SAMPLE)
-		node_speaker.get_stream().set_buffer_length(1.0 / FPS)
-		node_speaker.play()
-		playback = node_speaker.get_stream_playback()
+		_speaker.get_stream().set_mix_rate(SAMPLE)
+		_speaker.get_stream().set_buffer_length(1.0 / FPS)
+		_speaker.play()
+		playback = _speaker.get_stream_playback()
 
 
 	static func _process_buffer(delta: float) -> void:
@@ -624,7 +623,7 @@ func _ready() -> void:
 	node.set_name("Speaker")
 	node.set_stream(AudioStreamGenerator.new())
 	add_child(node)
-	SND.node_speaker = node
+	SND._speaker = node
 
 	DIR._crawler = DirAccess.open(ROOT)
 
@@ -657,6 +656,8 @@ func _ready() -> void:
 
 
 func _process(delta: float) -> void:
+	DIS.memsel()
+
 	if process:
 		if process.has_method("draw"):
 			process.draw()
