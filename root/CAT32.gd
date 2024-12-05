@@ -440,9 +440,6 @@ class DIS:
 				DIS._pixel_set(dest_x + x, dest_y + y, color)
 
 
-
-
-
 	static func clear(color: int = 0) -> void:
 		DIS.mem.fill(((color & 0x0F) << 4) | (color & 0x0F))
 
@@ -640,16 +637,35 @@ func _ready() -> void:
 	process.set_autostart(true)
 	add_child(process)
 
+	service = Timer.new()
+	service.set_name("Service")
+	service.set_wait_time(1.0 / FPS)
+	service.set_autostart(true)
+	add_child(service)
+
 	run("/boot.cat.gd")
+
+	# Service
+	service.set_script(load(ROOT.path_join("service.cat.gd")))
+
+	if service.has_method("update"):
+		if not service.timeout.is_connected(service.update):
+			service.connect("timeout", service.update)
+
+	if service.has_method("init"):
+		service.init()
 
 
 func _process(delta: float) -> void:
-	if not process:
-		return
+	if process:
+		if process.has_method("draw"):
+			process.draw()
 
-	if process.has_method("draw"):
-		process.draw()
-		DIS.flip()
+	if service:
+		if service.has_method("draw"):
+			service.draw()
+
+	DIS.flip()
 
 	SND._process_buffer(delta)
 	BTN._process_state()
@@ -667,7 +683,7 @@ func run(script: String):
 		#print(DIS.sprite.hex_encode()) # TODO: this is how to store it back
 
 	if process.has_method("init"):
-		await process.init()
+		process.init()
 
 	if process.has_method("update"):
 		if not process.timeout.is_connected(process.update):

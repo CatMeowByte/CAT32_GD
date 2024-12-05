@@ -13,7 +13,7 @@ var state = "menu"
 var menu_sel = 0
 var menu_items = ["Play", "Options", "Exit"]
 var options_sel = 0
-var options_items = ["Sound", "Food Highlight"]
+var options_items = ["Sound", "Food Glow"]
 var sound_enabled = true
 var highlight_food = true
 
@@ -139,7 +139,7 @@ func draw_menu():
 	COL.mask()
 
 func draw_game():
-	DIS.camera((-DIS.W + MAP_SIZE) / 2, (-DIS.H + MAP_SIZE) / 2)
+	DIS.camera((-DIS.W + MAP_SIZE) / 2, (-DIS.H+ + MAP_SIZE) / 2)
 	DIS.clear(COL.DARK_BLUE)
 	DIS.rect(-1, -1, MAP_SIZE + 2, MAP_SIZE + 2, COL.DARK_GRAY)
 

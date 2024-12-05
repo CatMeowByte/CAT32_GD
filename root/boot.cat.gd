@@ -7,11 +7,6 @@ func beep(c, t, d):
 	await timer(d)
 
 func init():
-	DIS.memsel(DIS.MEM_TOP)
-	DIS.clear(COL.BLACK)
-	DIS.text(4, 4, Time.get_time_string_from_system(), COL.DARK_GRAY)
-
-	DIS.memsel()
 	await beep(COL.BLACK, 0, 0.5)
 	await beep(COL.DARK_GRAY, 320.0, 0.125)
 	await beep(COL.BLACK, 0, 0.0625)
@@ -20,4 +15,4 @@ func init():
 	await beep(COL.WHITE, 880.0, 0.5)
 	await beep(COL.BLACK, 0, 0.25)
 
-	run("/app/blittest.cat.gd")
+	run("/app/snake.cat.gd")
