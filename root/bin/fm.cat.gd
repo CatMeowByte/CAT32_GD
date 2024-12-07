@@ -1,6 +1,8 @@
 extends CAT32
 
 var path = "/"
+var ls_dir = []
+var ls_file = []
 var entries = []
 var select = 0
 
@@ -8,7 +10,9 @@ func init():
 	load_directory()
 
 func load_directory():
-	entries = DIR.ls_dir(path) + DIR.ls_file(path)
+	ls_dir = DIR.ls_dir(path)
+	ls_file = DIR.ls_file(path)
+	entries =  ls_dir + ls_file
 	select = 0
 
 func update():
@@ -16,9 +20,11 @@ func update():
 	select = clamp(select, 0, entries.size() - 1)
 
 	if BTN.pressed(BTN.ACCEPT) and entries:
-		if entries[select] in DIR.ls_dir(path):
+		if entries[select] in ls_dir:
 			path = path.path_join(entries[select])
 			load_directory()
+		elif entries[select] in ls_file:
+			run(path.path_join(entries[select]))
 	elif BTN.pressed(BTN.CANCEL):
 		var split = Array(path.trim_prefix("/").split("/"))
 		split.pop_back()
@@ -26,7 +32,7 @@ func update():
 		load_directory()
 
 func draw():
-	DIS.clear(COL.BLACK)
+	DIS.clear()
 	DIS.rect(0, 0, DIS.W, 8, COL.DARK_BLUE, 1)
 	DIS.text(0, 0, path, COL.BLUE)
 	for i in range(entries.size()):

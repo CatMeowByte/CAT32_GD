@@ -14,6 +14,8 @@ const SAMPLE: float = 11025
 static var process: Timer
 static var service: Timer
 
+static var retval: Variant # FIXME: return should not like this, it will override necessary thing and return unnecessary
+
 
 class COL:
 	static var BLACK: int = 0
@@ -417,13 +419,13 @@ class DIS:
 					sx = int(src_x + (src_w - 1 - x * scale_x) if flip_h else src_x + x * scale_x)
 					sy = int(src_y + (src_h - 1 - y * scale_y) if flip_v else src_y + y * scale_y)
 				elif rotation == 1:
-					sx = int(src_x + (src_h - 1 - y * scale_y) if flip_v else src_x + y * scale_y)
+					sx = int(src_x + (src_h - 1 - y * scale_y) if not flip_v else src_x + y * scale_y)
 					sy = int(src_y + (src_w - 1 - x * scale_x) if flip_h else src_y + x * scale_x)
 				elif rotation == 2:
 					sx = int(src_x + (src_w - 1 - x * scale_x) if not flip_h else src_x + x * scale_x)
 					sy = int(src_y + (src_h - 1 - y * scale_y) if not flip_v else src_y + y * scale_y)
 				elif rotation == 3:
-					sx = int(src_x + (src_h - 1 - y * scale_y) if not flip_v else src_x + y * scale_y)
+					sx = int(src_x + (src_h - 1 - y * scale_y) if flip_v else src_x + y * scale_y)
 					sy = int(src_y + (src_w - 1 - x * scale_x) if not flip_h else src_y + x * scale_x)
 
 				if sx < 0 or sx >= src_size_w or sy < 0 or sy >= src_size_h:
@@ -672,12 +674,18 @@ func _process(delta: float) -> void:
 	BTN._process_state()
 
 
-func run(script: String):
+func run(script: String, arguments: Dictionary = {}) -> void:
 	if process.has_method("update"):
 		if process.timeout.is_connected(process.update):
 			process.disconnect("timeout", process.update)
 
 	process.set_script(load(ROOT.path_join(script)))
+
+	for key in arguments.keys():
+		if key in process:
+			process.set(key, arguments[key])
+		else:
+			o("Aguments \"" + key + "\" does not exist.")
 
 	if "gfx" in process:
 		DIS.sprite = process.gfx.strip_escapes().hex_decode()

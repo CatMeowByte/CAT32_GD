@@ -15,4 +15,6 @@ func init():
 	await beep(COL.WHITE, 880.0, 0.5)
 	await beep(COL.BLACK, 0, 0.25)
 
-	run("/app/snake.cat.gd")
+	run("/app/planet_name.cat.gd")
+	#run("/bin/fm.cat.gd")
+	#run("/bin/hi.cat.gd", {"uname"= "Cat"})

@@ -38,7 +38,7 @@ func tick():
 func service_time():
 	var time = Time.get_time_dict_from_system()
 	var time_h = time.hour % 12 if time.hour % 12 != 0 else 12
-	var time_fmt = (" " if time_h < 10 else "") + str(time_h) + (":" if time.second % 2 == 0 else " ") + str(time.minute)
+	var time_fmt = (" " if time_h < 10 else "") + str(time_h) + (":" if time.second % 2 == 0 else " ") + str(time.minute).pad_zeros(2)
 
 	var xoff = 0
 	for digit in time_fmt:
@@ -71,3 +71,7 @@ func service_time():
 	if time.hour < 12:
 		DIS.pixel(time_pos[0] + (xoff * 8) + 5, time_pos[1] + 5, COL.WHITE)
 		DIS.pixel(time_pos[0] + (xoff * 8) + 5, time_pos[1] + 6, COL.WHITE)
+
+func update():
+	if BTN.pressed(BTN.SYSTEM):
+		run("/bin/fm.cat.gd")

@@ -144,9 +144,7 @@ func draw_game():
 	DIS.rect(-1, -1, MAP_SIZE + 2, MAP_SIZE + 2, COL.DARK_GRAY)
 
 	var score = str(snake.size() - BODY_COUNT)
-	COL.mask(COL.BLACK, 0)
-	DIS.text((MAP_SIZE / 2 - 2 * score.length()), -8, score, COL.WHITE, COL.BLACK)
-	COL.mask()
+	DIS.text((MAP_SIZE / 2 - 2 * score.length()), -8, score, COL.WHITE)
 	for d in food:
 		if highlight_food and is_food_in_snake_path(d):
 			DIS.rect(d[0] - 1, d[1] - 1, 3, 3, COL.DARK_GREEN)
