@@ -74,6 +74,9 @@ func service_time():
 
 func update():
 	if BTN.get_repeat(BTN.CONTEXT):
+		SND.play_tone(SND.get_freq("B", 5), 1.0 / 20.0)
+		SND.play_tone(SND.get_freq("A", 5), 1.0 / 20.0)
+		SND.play_tone(SND.get_freq("G", 5), 1.0 / 20.0)
 		run("/app/file_explorer.cat.gd")
 	if BTN.get_repeat(BTN.SYSTEM):
 		get_tree().reload_current_scene()

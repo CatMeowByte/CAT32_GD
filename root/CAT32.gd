@@ -3,7 +3,7 @@ extends Node
 
 # NOTICE:
 # do better return in exec
-# consider aliasing
+# consider aliasing for classless
 # dbus message
 
 const ROOT: String = "res://root/"
@@ -14,14 +14,13 @@ const SAMPLE: float = 11025
 static var process: Timer
 static var service: Timer
 
-var FONT = load(ROOT.path_join("/CAT32/font.gd")).new()
-var COL = load(ROOT.path_join("/CAT32/color.gd")).new()
-var DIS = load(ROOT.path_join("/CAT32/video.gd")).new()
-var SND = load(ROOT.path_join("/CAT32/audio.gd")).new()
-var IOP = load(ROOT.path_join("/CAT32/io.gd")).new()
-var DIR = load(ROOT.path_join("/CAT32/storage.gd")).new()
-var BTN = load(ROOT.path_join("/CAT32/button.gd")).new()
-
+static var FONT = load(ROOT.path_join("/CAT32/font.gd")).new()
+static var COL = load(ROOT.path_join("/CAT32/color.gd")).new()
+static var DIS = load(ROOT.path_join("/CAT32/video.gd")).new()
+static var SND = load(ROOT.path_join("/CAT32/audio.gd")).new()
+static var IOP = load(ROOT.path_join("/CAT32/io.gd")).new()
+static var DIR = load(ROOT.path_join("/CAT32/storage.gd")).new()
+static var BTN = load(ROOT.path_join("/CAT32/button.gd")).new()
 
 func _ready() -> void:
 	# Dependency
@@ -60,13 +59,13 @@ func _ready() -> void:
 	process.set_autostart(true)
 	add_child(process)
 
-	run("/boot.cat.gd")
-
 	service = Timer.new()
 	service.set_name("Service")
 	service.set_wait_time(1.0 / FPS)
 	service.set_autostart(true)
 	add_child(service)
+
+	run("/boot.cat.gd")
 
 	service.set_script(load(ROOT.path_join("service.cat.gd")))
 
@@ -79,7 +78,6 @@ func _ready() -> void:
 
 	if service.has_method("init"):
 		service.init()
-
 
 func _process(delta: float) -> void:
 	DIS.memsel()

@@ -34,23 +34,23 @@ func draw_current_test():
 	DIS.flip()
 
 func update():
-	if BTN.is_pressed(BTN.RIGHT):
+	if BTN.get_repeat(BTN.RIGHT):
 		current_scale_x += 1
 		draw_current_test()
-	elif BTN.is_pressed(BTN.LEFT):
+	elif BTN.get_repeat(BTN.LEFT):
 		current_scale_x -= 1
 		draw_current_test()
-	elif BTN.is_pressed(BTN.UP):
+	elif BTN.get_repeat(BTN.UP):
 		current_scale_y += 1
 		draw_current_test()
-	elif BTN.is_pressed(BTN.DOWN):
+	elif BTN.get_repeat(BTN.DOWN):
 		current_scale_y -= 1
 		draw_current_test()
-	elif BTN.is_pressed(BTN.ACCEPT):
+	elif BTN.get_repeat(BTN.ACCEPT):
 		# Cycle through sprites
 		sprite_index = (sprite_index + 1) % ((128 / sprite_size) * (128 / sprite_size))
 		draw_current_test()
-	elif BTN.is_pressed(BTN.CANCEL):
+	elif BTN.get_repeat(BTN.CANCEL):
 		# Cycle through rotations (0, 90, 180, 270 degrees)
 		current_rotation = (current_rotation + 1) % 4
 		draw_current_test()

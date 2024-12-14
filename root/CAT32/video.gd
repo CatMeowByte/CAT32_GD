@@ -31,7 +31,6 @@ static var text_wrap: bool
 
 func _reset():
 	sprite.fill(0)
-	cam = [0, 0]
 	text_wrap = false
 
 func _setup() -> void:
