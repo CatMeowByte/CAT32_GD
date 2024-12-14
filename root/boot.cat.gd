@@ -1,6 +1,6 @@
 extends CAT32
 
-const APP = "/app/planet_name.cat.gd"
+const APP = "/app/file_explorer.cat.gd"
 
 const DELAY = 0.03125
 const FREQ_STEP = 1.12246
@@ -19,7 +19,7 @@ func init():
 		current_freq *= FREQ_STEP
 		await timer(DELAY)
 
-	await timer(DELAY * 8)
+	await timer(DELAY * 16)
 	DIS.clear()
 	DIS.flip()
 	SND.play_tone(SND.get_freq("C", 4), DELAY)
@@ -36,6 +36,7 @@ func init():
 	DIS.text(0, DIS.H - 8, "0.0.0 Experimental", COL.DARK_GRAY)
 	DIS.flip()
 	SND.play_tone(SND.get_freq("G", 5), DELAY)
-	await timer(DELAY * 16)
+	await timer(DELAY * 32)
 
 	run(APP)
+	#exec("/bin/hi.cat.gd", {"uname" = "/bin/cat.cat.gd"})

@@ -10,8 +10,8 @@ class player:
 
 
 func update() -> void:
-	player.pos.x += (int(BTN.pressed(BTN.RIGHT)) - int(BTN.pressed(BTN.LEFT))) * player.spd
-	player.pos.y += (int(BTN.pressed(BTN.DOWN)) - int(BTN.pressed(BTN.UP))) * player.spd
+	player.pos.x += (int(BTN.is_pressed(BTN.RIGHT)) - int(BTN.is_pressed(BTN.LEFT))) * player.spd
+	player.pos.y += (int(BTN.is_pressed(BTN.DOWN)) - int(BTN.is_pressed(BTN.UP))) * player.spd
 
 
 func draw() -> void:

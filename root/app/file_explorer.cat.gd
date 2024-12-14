@@ -16,16 +16,23 @@ func load_directory():
 	select = 0
 
 func update():
-	select += int(BTN.pressed(BTN.DOWN)) - int(BTN.pressed(BTN.UP))
+	var sp = select
+	select += int(BTN.get_repeat(BTN.DOWN)) - int(BTN.get_repeat(BTN.UP))
 	select = clamp(select, 0, entries.size() - 1)
+	if select != sp:
+		SND.play_tone(SND.get_freq("A", 4), 1.0 / 20.0)
 
-	if BTN.pressed(BTN.ACCEPT) and entries:
+	if BTN.get_repeat(BTN.ACCEPT) and entries:
+		SND.play_tone(SND.get_freq("G", 5), 1.0 / 20.0)
+		SND.play_tone(SND.get_freq("A", 6), 1.0 / 20.0)
 		if entries[select] in ls_dir:
 			path = path.path_join(entries[select])
 			load_directory()
 		elif entries[select] in ls_file:
 			run(path.path_join(entries[select]))
-	elif BTN.pressed(BTN.CANCEL):
+	elif BTN.get_repeat(BTN.CANCEL):
+		SND.play_tone(SND.get_freq("A", 6), 1.0 / 20.0)
+		SND.play_tone(SND.get_freq("G", 5), 1.0 / 20.0)
 		var split = Array(path.trim_prefix("/").split("/"))
 		split.pop_back()
 		path = "/" + "/".join(split)
@@ -41,4 +48,4 @@ func draw():
 			DIS.rect(0, 8 + i * 8, DIS.W, 8, COL.DARK_GRAY, 1)
 			DIS.text(0, 8 + i * 8, entries[i], COL.YELLOW if is_dir else COL.WHITE)
 		else:
-			DIS.text(0, 8 + i * 8, entries[i], COL.PINK if is_dir else COL.LIGHT_GRAY)
+			DIS.text(0, 8 + i * 8, entries[i], COL.PINK if is_dir else COL.GRAY)

@@ -22,9 +22,7 @@ func init():
 
 func update():
 	if state == "menu" or state == "options":
-		if f % 4 == 0:
-			menu_input()
-		f = (f + 1) % 4
+		menu_input()
 	else:
 		if f % (2 - boost) == 0:
 			tick()
@@ -34,13 +32,13 @@ func menu_input():
 	var sel = menu_sel if state == "menu" else options_sel
 	var items_size = menu_items.size() if state == "menu" else options_items.size()
 
-	if BTN.pressed(BTN.UP):
+	if BTN.get_repeat(BTN.UP):
 		sel = max(sel - 1, 0)
 		play_sound(SND.get_freq("A", 4), 1.0 / 20.0)
-	elif BTN.pressed(BTN.DOWN):
+	elif BTN.get_repeat(BTN.DOWN):
 		sel = min(sel + 1, items_size - 1)
 		play_sound(SND.get_freq("A", 4), 1.0 / 20.0)
-	elif BTN.pressed(BTN.ACCEPT):
+	elif BTN.get_repeat(BTN.ACCEPT):
 		if state == "menu":
 			play_sound(SND.get_freq("G", 5), 1.0 / 20.0)
 			play_sound(SND.get_freq("A", 6), 1.0 / 20.0)
@@ -57,10 +55,11 @@ func menu_input():
 				highlight_food = !highlight_food
 			play_sound(SND.get_freq("G", 5), 1.0 / 20.0)
 			play_sound(SND.get_freq("A", 6), 1.0 / 20.0)
-	elif BTN.pressed(BTN.CANCEL) and state == "options":
-		state = "menu"
-	elif BTN.pressed(BTN.CANCEL) and state == "play":
-		state = "menu"
+	elif BTN.get_repeat(BTN.CANCEL):
+		if state == "options":
+			state = "menu"
+		elif state == "play":
+			state = "menu"
 
 	if state == "menu":
 		menu_sel = sel
@@ -92,23 +91,23 @@ func tick():
 
 func input():
 	boost = 0
-	if BTN.pressed(BTN.UP) and dir != [0, 1]:
+	if BTN.is_pressed(BTN.UP) and dir != [0, 1]:
 		if dir == [0, -1]:
 			boost = 1
 		dir = [0, -1]
-	elif BTN.pressed(BTN.DOWN) and dir != [0, -1]:
+	elif BTN.is_pressed(BTN.DOWN) and dir != [0, -1]:
 		if dir == [0, 1]:
 			boost = 1
 		dir = [0, 1]
-	elif BTN.pressed(BTN.LEFT) and dir != [1, 0]:
+	elif BTN.is_pressed(BTN.LEFT) and dir != [1, 0]:
 		if dir == [-1, 0]:
 			boost = 1
 		dir = [-1, 0]
-	elif BTN.pressed(BTN.RIGHT) and dir != [-1, 0]:
+	elif BTN.is_pressed(BTN.RIGHT) and dir != [-1, 0]:
 		if dir == [1, 0]:
 			boost = 1
 		dir = [1, 0]
-	elif BTN.pressed(BTN.CANCEL):
+	elif BTN.is_pressed(BTN.CANCEL):
 		state = "menu"
 
 func draw():
@@ -129,7 +128,7 @@ func draw_menu():
 	var sel = menu_sel if state == "menu" else options_sel
 
 	for i in range(items.size()):
-		var fg = COL.WHITE if i == sel else COL.LIGHT_GRAY
+		var fg = COL.WHITE if i == sel else COL.GRAY
 		var bg = COL.BLACK if i == sel else COL.PINK
 		var text = items[i]
 		if state == "options":

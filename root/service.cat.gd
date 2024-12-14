@@ -27,7 +27,7 @@ func init():
 
 func tick():
 	DIS.memsel(DIS.MEM_TOP)
-	DIS.clear(COL.BLACK)
+	DIS.clear()
 
 	service_time()
 
@@ -73,5 +73,7 @@ func service_time():
 		DIS.pixel(time_pos[0] + (xoff * 8) + 5, time_pos[1] + 6, COL.WHITE)
 
 func update():
-	if BTN.pressed(BTN.SYSTEM):
-		run("/bin/fm.cat.gd")
+	if BTN.get_repeat(BTN.CONTEXT):
+		run("/app/file_explorer.cat.gd")
+	if BTN.get_repeat(BTN.SYSTEM):
+		get_tree().reload_current_scene()

@@ -22,46 +22,48 @@ var current_planet_name = ""
 
 # Generate a sophisticated random name for the planet
 func generate_name() -> String:
-	var name = ""
+	var planet_name = ""
 	var len_cost = 12
 	var word_count = 0
 	var max_words = int(random() * 3) + 1
 
-	while word_count < max_words and len_cost > 0:
-		if word_count == max_words - 1 and max_words > 1:
-			var codename = generate_random_codename()
-			if codename["cost"] <= len_cost:
-				name += codename["word"]
-				len_cost -= codename["cost"]
+	while not planet_name:
+		while word_count < max_words and len_cost > 0:
+			if word_count == max_words - 1 and max_words > 1:
+				var codename = generate_random_codename()
+				if codename["cost"] <= len_cost:
+					planet_name += codename["word"]
+					len_cost -= codename["cost"]
+				else:
+					break
 			else:
-				break
-		else:
-			var normal_word = generate_normal_word(len_cost)
-			if normal_word["cost"] <= len_cost:
-				name += normal_word["word"]
-				len_cost -= normal_word["cost"]
-			else:
-				break
-		if word_count < max_words - 1 and len_cost > 0:
-			name += " "
-		word_count += 1
+				var normal_word = generate_normal_word(len_cost)
+				if normal_word["cost"] <= len_cost:
+					planet_name += normal_word["word"]
+					len_cost -= normal_word["cost"]
+				else:
+					break
+			if word_count < max_words - 1 and len_cost > 0:
+				planet_name += " "
+			word_count += 1
 
-	if word_count == 1 and len_cost > 0 and len(name) < 6:
-		var filler = generate_normal_word(len_cost)
-		name += " " + filler["word"] if len(name) > 0 else filler["word"]
+		if word_count == 1 and len_cost > 0 and len(planet_name) < 6:
+			var filler = generate_normal_word(len_cost)
+			planet_name += " " + filler["word"] if len(planet_name) > 0 else filler["word"]
 
-	return name
+	return planet_name
 
 # Generate a normal word (capitalized)
 func generate_normal_word(len_cost: int) -> Dictionary:
 	var word = ""
 	var cost = 0
 
-	if random() < 0.7 and len_cost > 3:
-		word += PREFIXES[int(random() * PREFIXES.size())].capitalize()
-		cost += 3
+	if random() < 0.3 and len_cost > 3:
+		var prefix = PREFIXES[int(random() * PREFIXES.size())]
+		word += prefix
+		cost += prefix.length()
 
-	var core_length = max(2, min(len_cost - cost, int(random() * 2) + 2))
+	var core_length = max(2, min(len_cost - cost, int(random() * 6) + 2))
 	var use_vowel = false
 	for i in range(core_length):
 		if use_vowel:
@@ -74,9 +76,10 @@ func generate_normal_word(len_cost: int) -> Dictionary:
 		use_vowel = not use_vowel
 	cost += core_length
 
-	if random() < 0.7 and len_cost - cost > 3:
-		word += SUFFIXES[int(random() * SUFFIXES.size())]
-		cost += 3
+	if random() < 0.3 and len_cost - cost > 3:
+		var suffix = SUFFIXES[int(random() * SUFFIXES.size())]
+		word += suffix
+		cost += suffix.length()
 
 	return {"word": word.capitalize(), "cost": cost}
 
@@ -131,7 +134,7 @@ func generate_random_codename() -> Dictionary:
 		return generate_codename_order()
 
 func update():
-	if BTN.pressed(BTN.ACCEPT):
+	if BTN.get_repeat(BTN.ACCEPT):
 		current_planet_name = generate_name()
 		o(current_planet_name)
 

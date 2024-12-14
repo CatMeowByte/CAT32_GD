@@ -1,14 +1,19 @@
 extends CAT32
 
+# Argument
+var path = "/CAT32.gd"
+
 var txt = []
 var crs = [0, 0]
 var scr_off = [0, 0]
 var scr_max = [0, 0]
-var scr_spd = 0.1
+var scr_spd = 0.2
 
 func init():
+	BTN.repeat_delay = 2
+	BTN.repeat_interval = 1
 	# Open the file and read txt
-	var file = FileAccess.open("res://script/cat.cat.gd", FileAccess.READ)
+	var file = FileAccess.open(ROOT.path_join(path), FileAccess.READ)
 	txt = file.get_as_text().split("\n")
 	file.close()
 
@@ -20,8 +25,8 @@ func init():
 	scr_max[1] = max(0, txt.size() * 8 - DIS.H)
 
 func update():
-	var dx = int(BTN.pressed(BTN.RIGHT)) - int(BTN.pressed(BTN.LEFT))
-	var dy = int(BTN.pressed(BTN.DOWN)) - int(BTN.pressed(BTN.UP))
+	var dx = int(BTN.get_repeat(BTN.RIGHT)) - int(BTN.get_repeat(BTN.LEFT))
+	var dy = int(BTN.get_repeat(BTN.DOWN)) - int(BTN.get_repeat(BTN.UP))
 
 	crs[0] = clamp(crs[0] + dx, 0, txt[crs[1]].length())
 	crs[1] = clamp(crs[1] + dy, 0, txt.size() - 1)
