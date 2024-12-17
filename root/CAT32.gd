@@ -4,9 +4,11 @@ extends Node
 # NOTICE:
 # do better return in exec
 # consider aliasing for classless
+# WARNING: and the vaiable and constant? should it be aliased? should it be just stored? where? in main?
 # dbus message
 
 const ROOT: String = "res://root/"
+const APP_HOME = "/app/file_explorer.cat.gd"
 
 const FPS: int = 30
 const SAMPLE: float = 11025
@@ -23,6 +25,7 @@ static var DIR = load(ROOT.path_join("/CAT32/storage.gd")).new()
 static var BTN = load(ROOT.path_join("/CAT32/button.gd")).new()
 
 # Alias
+#region DISPLAY
 func smem(id: int = 0) -> void:
 	DIS.memsel(id)
 
@@ -30,7 +33,7 @@ func cam(x: int = 0, y: int = 0) -> PackedInt32Array:
 	return DIS.camera(x, y)
 
 func cls(c: int = 0) -> void:
-	DIS.cls(c)
+	DIS.clear(c)
 
 func px(x: int, y: int, c: int = -1) -> int:
 	return DIS.pixel(x, y, c)
@@ -63,6 +66,18 @@ func rect(x: int, y: int, w: int, h: int, c: int, f: bool = false) -> void:
 
 func flip() -> void:
 	DIS.flip()
+#endregion
+
+func mask(c: int = -1, t: bool = false) -> void:
+	COL.mask(c, t)
+
+#region BUTTON
+func btn(id: int) -> bool:
+	return BTN.is_pressed(id)
+
+func btnr(id: int, d: int = 15, i: int = 5) -> bool:
+	return BTN.get_repeat(id, d, i)
+#endregion
 
 # System
 func _ready() -> void:
@@ -141,6 +156,7 @@ func _process(delta: float) -> void:
 func _reset():
 	DIS._reset()
 
+# Standard
 func run(script: String, arguments: Dictionary = {}) -> void:
 	_reset()
 	if process.has_method("update"):
@@ -180,6 +196,9 @@ func exec(script: String, arguments: Dictionary = {}) -> Variant:
 	else:
 		o("Commands \"" + script + "\" has no execute() function.")
 	return
+
+func exit() -> void:
+	run(APP_HOME)
 
 func timer(duration: float) -> void:
 	await get_tree().create_timer(duration).timeout

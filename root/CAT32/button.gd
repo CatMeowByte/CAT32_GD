@@ -34,9 +34,6 @@ func _process_state() -> void:
 func is_pressed(button: int) -> bool:
 	return state[button] > 0
 
-func just_pressed(button: int) -> bool:
-	return state[button] == 1
-
 func get_repeat(button: int, delay: int = 15, interval: int = 5) -> bool:
 	var duration = state[button]
 

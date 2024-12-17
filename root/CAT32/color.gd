@@ -76,7 +76,7 @@ const PALETTE = [ # PICO-8 palette
 	#Color8(115, 239, 247), # 15 Cyan
 #]
 
-static var _mask: int = 1 # Bitmask
+static var _mask: int = 0b0000_0000_0000_0000_0000_0000_0000_0001 # Bitmask
 
 func mask(color: int = -1, hide: bool = false) -> void:
 	if color == -1:

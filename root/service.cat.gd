@@ -26,12 +26,12 @@ func init():
 	tick()
 
 func tick():
-	DIS.memsel(DIS.MEM_TOP)
-	DIS.clear()
+	smem(1)
+	cls()
 
 	service_time()
 
-	DIS.flip()
+	flip()
 	await timer(1)
 	tick()
 
@@ -49,7 +49,7 @@ func service_time():
 			xoff += 1
 			continue
 
-		DIS.blit(
+		blit(
 			font_time,
 			128, 16,
 			shift * 8, 0, 8, 16,
@@ -59,7 +59,7 @@ func service_time():
 		)
 		xoff += 1
 
-	DIS.blit(
+	blit(
 			font_time,
 			128, 16,
 			11 * 8, 0, 8, 16,
@@ -73,10 +73,10 @@ func service_time():
 		DIS.pixel(time_pos[0] + (xoff * 8) + 5, time_pos[1] + 6, COL.WHITE)
 
 func update():
-	if BTN.get_repeat(BTN.CONTEXT):
+	if btnr(BTN.CONTEXT):
 		SND.play_tone(SND.get_freq("B", 5), 1.0 / 20.0)
 		SND.play_tone(SND.get_freq("A", 5), 1.0 / 20.0)
 		SND.play_tone(SND.get_freq("G", 5), 1.0 / 20.0)
-		run("/app/file_explorer.cat.gd")
-	if BTN.get_repeat(BTN.SYSTEM):
+		exit()
+	if btnr(BTN.SYSTEM):
 		get_tree().reload_current_scene()
