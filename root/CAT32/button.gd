@@ -22,14 +22,7 @@ static var keybind = {
 	RIGHT: [KEY_D, KEY_RIGHT],
 }
 
-static var repeat_delay
-static var repeat_interval
-
 static var state: PackedInt32Array = [0, 0, 0, 0, 0, 0, 0, 0]
-
-func _reset():
-	repeat_delay = 15
-	repeat_interval = 5
 
 func _process_state() -> void:
 	for i in range(8):
@@ -44,14 +37,14 @@ func is_pressed(button: int) -> bool:
 func just_pressed(button: int) -> bool:
 	return state[button] == 1
 
-func get_repeat(button: int) -> bool:
+func get_repeat(button: int, delay: int = 15, interval: int = 5) -> bool:
 	var duration = state[button]
 
 	if duration == 1:
 		return true
-	if duration == repeat_delay:
+	if duration == delay:
 		return true
-	if duration > repeat_delay and (duration - repeat_delay) % repeat_interval == 0:
+	if duration > delay and (duration - delay) % interval == 0:
 		return true
 
 	return false

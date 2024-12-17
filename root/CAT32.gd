@@ -22,6 +22,49 @@ static var IOP = load(ROOT.path_join("/CAT32/io.gd")).new()
 static var DIR = load(ROOT.path_join("/CAT32/storage.gd")).new()
 static var BTN = load(ROOT.path_join("/CAT32/button.gd")).new()
 
+# Alias
+func smem(id: int = 0) -> void:
+	DIS.memsel(id)
+
+func cam(x: int = 0, y: int = 0) -> PackedInt32Array:
+	return DIS.camera(x, y)
+
+func cls(c: int = 0) -> void:
+	DIS.cls(c)
+
+func px(x: int, y: int, c: int = -1) -> int:
+	return DIS.pixel(x, y, c)
+
+func text(x: int, y: int, txt: String, c: int, bg: int = 0) -> void:
+	DIS.text(x, y, txt, c, bg)
+
+func blit(
+	src: PackedByteArray,
+	ssw: int, ssh: int,
+	sx: int, sy: int, sw: int, sh: int,
+	dsw: int, dsh: int,
+	dx: int, dy: int, w: int, dh: int,
+	r: int = 0
+) -> void:
+	DIS.blit(
+		src,
+		ssw, ssh,
+		sx, sy, sw, sh,
+		dsw, dsh,
+		dx, dy, w, dh,
+		r
+	)
+
+func line(x1: int, y1: int, x2: int, y2: int, c: int) -> void:
+	DIS.line(x1, y1, x2, y2, c)
+
+func rect(x: int, y: int, w: int, h: int, c: int, f: bool = false) -> void:
+	DIS.rect(x, y, w, h, c, f)
+
+func flip() -> void:
+	DIS.flip()
+
+# System
 func _ready() -> void:
 	# Dependency
 	DIS.FONT = FONT
@@ -97,7 +140,6 @@ func _process(delta: float) -> void:
 # Reset value to default
 func _reset():
 	DIS._reset()
-	BTN._reset()
 
 func run(script: String, arguments: Dictionary = {}) -> void:
 	_reset()
